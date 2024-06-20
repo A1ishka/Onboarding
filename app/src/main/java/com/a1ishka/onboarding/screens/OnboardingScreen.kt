@@ -23,15 +23,15 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
@@ -60,7 +60,7 @@ fun OnboardingScreen(
     )
     val pagerState = rememberPagerState { 4 }
 
-    SetBarColor(color = Color(240,207,105))
+    SetBarColor(color = Color(240, 207, 105))
     Column(modifier = Modifier.fillMaxSize()) {
         HorizontalPager(
             modifier = Modifier.weight(10f),
@@ -103,9 +103,9 @@ fun PagerScreen(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(horizontal = 30.dp)
-                    .padding(top = 45.dp),
+                    .padding(top = 35.dp),
                 text = onBoardingPage.title,
-                fontSize = 35.sp,
+                fontSize = 27.sp,
                 style = TextStyle(
                     fontFamily = onBoardingPage.titleFontFamily,
                     fontWeight = FontWeight.Bold,
@@ -119,7 +119,7 @@ fun PagerScreen(
                     .padding(horizontal = 30.dp)
                     .padding(top = 20.dp, bottom = 15.dp),
                 text = onBoardingPage.description,
-                fontSize = 23.sp,
+                fontSize = 20.sp,
                 style = TextStyle(
                     fontFamily = Roboto,
                     fontWeight = FontWeight.Medium,
@@ -128,24 +128,27 @@ fun PagerScreen(
                 )
             )
             Image(
-                modifier = Modifier.fillMaxWidth(),
+                modifier = Modifier.fillMaxSize(),
+                contentScale = ContentScale.Crop,
                 painter = painterResource(id = onBoardingPage.image),
                 contentDescription = "Pager Image"
             )
             Row(
                 modifier = Modifier
                     .fillMaxSize()
-                    .padding(25.dp),
+                    .padding(25.dp)
             ) {
-                Column(
+                Box(
                     modifier = Modifier
-                        .fillMaxSize(0.8f)
+                        .fillMaxSize(0.7f)
+                        .padding(vertical = 25.dp),
+                    contentAlignment = Alignment.TopStart
                 ) {
                     Row(
                         Modifier
                             .wrapContentHeight()
                             .fillMaxWidth(0.7f)
-                            .padding(bottom = 8.dp)
+                            .padding(bottom = 20.dp)
                     ) {
                         repeat(pagerState.pageCount) { iteration ->
                             val isCurrentPage = pagerState.currentPage == iteration
@@ -165,26 +168,28 @@ fun PagerScreen(
                             )
                         }
                     }
-                    Button(
+                    TextButton(
+                        modifier = Modifier.padding(top = 20.dp),
                         onClick = {
                             onboardingViewModel.saveOnBoardingState(completed = true)
                             navController.popBackStack()
                             navController.navigate(Screen.Home.route)
                         },
-                        colors = ButtonDefaults.buttonColors(
-                            contentColor = Color.White,
-                            containerColor = onBoardingPage.backgroundColor
-                        )
                     ) {
                         Text(
                             fontFamily = Roboto,
                             fontSize = 20.sp,
+                            color = Color.White,
                             text = "Skip"
                         )
                     }
                 }
-                IconButton(
+                Button(
                     modifier = Modifier.fillMaxSize(),
+                    shape = CircleShape,
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = onBoardingPage.backgroundColor
+                    ),
                     onClick = {
                         coroutineScope.launch {
                             val nextPage = pagerState.currentPage + 1
@@ -198,14 +203,13 @@ fun PagerScreen(
                         }
                     }
                 ) {
-                    Icon(
+                    Image(
                         modifier = Modifier
-//                            .padding(horizontal = 5.dp, vertical = 25.dp)
                             .fillMaxSize()
-                            .width(250.dp)
-                            .height(250.dp),
+                            .width(90.dp)
+                            .height(90.dp),
                         painter = painterResource(id = onBoardingPage.loaderIcon),
-                        contentDescription = "Icon Image"
+                        contentDescription = "Image"
                     )
                 }
             }
