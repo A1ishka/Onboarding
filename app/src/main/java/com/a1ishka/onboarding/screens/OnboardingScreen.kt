@@ -1,3 +1,5 @@
+@file:OptIn(ExperimentalFoundationApi::class)
+
 package com.a1ishka.onboarding.screens
 
 import androidx.compose.foundation.ExperimentalFoundationApi
@@ -44,9 +46,9 @@ import com.a1ishka.onboarding.SetBarColor
 import com.a1ishka.onboarding.navigation.Screen
 import com.a1ishka.onboarding.ui.theme.Roboto
 import com.a1ishka.onboarding.viewmodel.OnboardingViewModel
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 
-@OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun OnboardingScreen(
     navController: NavController,
@@ -77,7 +79,6 @@ fun OnboardingScreen(
     }
 }
 
-@OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun PagerScreen(
     onBoardingPage: OnBoardingPage,
@@ -86,7 +87,6 @@ fun PagerScreen(
     onboardingViewModel: OnboardingViewModel
 ) {
     val coroutineScope = rememberCoroutineScope()
-
     SetBarColor(color = onBoardingPage.backgroundColor)
     Box(
         modifier = Modifier
@@ -99,34 +99,7 @@ fun PagerScreen(
                 .verticalScroll(rememberScrollState()),
             verticalArrangement = Arrangement.Top
         ) {
-            Text(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 30.dp)
-                    .padding(top = 35.dp),
-                text = onBoardingPage.title,
-                fontSize = 27.sp,
-                style = TextStyle(
-                    fontFamily = onBoardingPage.titleFontFamily,
-                    fontWeight = FontWeight.Bold,
-                    textAlign = TextAlign.Justify,
-                    color = Color.White
-                )
-            )
-            Text(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 30.dp)
-                    .padding(top = 20.dp, bottom = 15.dp),
-                text = onBoardingPage.description,
-                fontSize = 20.sp,
-                style = TextStyle(
-                    fontFamily = Roboto,
-                    fontWeight = FontWeight.Medium,
-                    textAlign = TextAlign.Justify,
-                    color = Color.White
-                )
-            )
+            TitleAndDescription(onBoardingPage = onBoardingPage)
             Image(
                 modifier = Modifier.fillMaxSize(),
                 contentScale = ContentScale.Crop,
@@ -144,107 +117,145 @@ fun PagerScreen(
                         .padding(vertical = 25.dp),
                     contentAlignment = Alignment.TopStart
                 ) {
-                    Row(
-                        Modifier
-                            .wrapContentHeight()
-                            .fillMaxWidth(0.7f)
-                            .padding(bottom = 20.dp)
-                    ) {
-                        repeat(pagerState.pageCount) { iteration ->
-                            val isCurrentPage = pagerState.currentPage == iteration
-                            val color = if (isCurrentPage) Color(255, 255, 255, 255) else Color(
-                                255,
-                                255,
-                                255,
-                                100
-                            )
-                            val shape = if (isCurrentPage) RoundedCornerShape(8.dp) else CircleShape
-                            Box(
-                                modifier = Modifier
-                                    .padding(2.dp)
-                                    .clip(shape)
-                                    .background(color)
-                                    .size(if (isCurrentPage) 32.dp else 16.dp, 16.dp)
-                            )
-                        }
-                    }
-                    TextButton(
-                        modifier = Modifier.padding(top = 20.dp),
-                        onClick = {
-                            onboardingViewModel.saveOnBoardingState(completed = true)
-                            navController.popBackStack()
-                            navController.navigate(Screen.Home.route)
-                        },
-                    ) {
-                        Text(
-                            fontFamily = Roboto,
-                            fontSize = 20.sp,
-                            color = Color.White,
-                            text = "Skip"
-                        )
-                    }
-                }
-                Button(
-                    modifier = Modifier.fillMaxSize(),
-                    shape = CircleShape,
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = onBoardingPage.backgroundColor
-                    ),
-                    onClick = {
-                        coroutineScope.launch {
-                            val nextPage = pagerState.currentPage + 1
-                            if (nextPage < pagerState.pageCount) {
-                                pagerState.scrollToPage(nextPage)
-                            } else {
-                                onboardingViewModel.saveOnBoardingState(completed = true)
-                                navController.popBackStack()
-                                navController.navigate(Screen.Home.route)
-                            }
-                        }
-                    }
-                ) {
-                    Image(
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .width(90.dp)
-                            .height(90.dp),
-                        painter = painterResource(id = onBoardingPage.loaderIcon),
-                        contentDescription = "Image"
+                    PagerIdentificator(pagerState = pagerState)
+                    SkipButton(
+                        onboardingViewModel = onboardingViewModel,
+                        navController = navController
                     )
                 }
+                ButtonNext(
+                    onBoardingPage = onBoardingPage,
+                    pagerState = pagerState,
+                    navController = navController,
+                    onboardingViewModel = onboardingViewModel,
+                    coroutineScope = coroutineScope
+                )
             }
         }
     }
 }
 
-//@Composable
-//@Preview(showBackground = true)
-//fun FirstOnBoardingScreenPreview() {
-//    Column(modifier = Modifier.fillMaxSize()) {
-//        PagerScreen(onBoardingPage = OnBoardingPage.FirstPage)
-//    }
-//}
-//
-//@Composable
-//@Preview(showBackground = true)
-//fun SecondOnBoardingScreenPreview() {
-//    Column(modifier = Modifier.fillMaxSize()) {
-//        PagerScreen(onBoardingPage = OnBoardingPage.SecondPage)
-//    }
-//}
-//
-//@Composable
-//@Preview(showBackground = true)
-//fun ThirdOnBoardingScreenPreview() {
-//    Column(modifier = Modifier.fillMaxSize()) {
-//        PagerScreen(onBoardingPage = OnBoardingPage.ThirdPage)
-//    }
-//}
-//
-//@Composable
-//@Preview(showBackground = true)
-//fun FourthOnBoardingScreenPreview() {
-//    Column(modifier = Modifier.fillMaxSize()) {
-//        PagerScreen(onBoardingPage = OnBoardingPage.FourthPage)
-//    }
-//}
+
+@Composable
+fun ButtonNext(
+    onBoardingPage: OnBoardingPage,
+    pagerState: PagerState,
+    navController: NavController,
+    onboardingViewModel: OnboardingViewModel,
+    coroutineScope: CoroutineScope
+) {
+    Button(
+        modifier = Modifier.fillMaxSize(),
+        shape = CircleShape,
+        colors = ButtonDefaults.buttonColors(
+            containerColor = onBoardingPage.backgroundColor
+        ),
+        onClick = {
+            coroutineScope.launch {
+                val nextPage = pagerState.currentPage + 1
+                if (nextPage < pagerState.pageCount) {
+                    pagerState.scrollToPage(nextPage)
+                } else {
+                    onboardingViewModel.saveOnBoardingState(completed = true)
+                    navController.popBackStack()
+                    navController.navigate(Screen.Home.route)
+                }
+            }
+        }
+    ) {
+        Image(
+            modifier = Modifier
+                .fillMaxSize()
+                .width(90.dp)
+                .height(90.dp),
+            painter = painterResource(id = onBoardingPage.loaderIcon),
+            contentDescription = "Image"
+        )
+    }
+}
+
+@Composable
+fun SkipButton(
+    onboardingViewModel: OnboardingViewModel,
+    navController: NavController
+) {
+    TextButton(
+        modifier = Modifier.padding(top = 20.dp),
+        onClick = {
+            onboardingViewModel.saveOnBoardingState(completed = true)
+            navController.popBackStack()
+            navController.navigate(Screen.Home.route)
+        },
+    ) {
+        Text(
+            fontFamily = Roboto,
+            fontSize = 20.sp,
+            color = Color.White,
+            text = "Skip"
+        )
+    }
+}
+
+@Composable
+fun TitleAndDescription(
+    onBoardingPage: OnBoardingPage
+) {
+    Text(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 30.dp)
+            .padding(top = 35.dp),
+        text = onBoardingPage.title,
+        fontSize = 27.sp,
+        style = TextStyle(
+            fontFamily = onBoardingPage.titleFontFamily,
+            fontWeight = FontWeight.Bold,
+            textAlign = TextAlign.Justify,
+            color = Color.White
+        )
+    )
+    Text(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 30.dp)
+            .padding(top = 20.dp, bottom = 15.dp),
+        text = onBoardingPage.description,
+        fontSize = 20.sp,
+        style = TextStyle(
+            fontFamily = Roboto,
+            fontWeight = FontWeight.Medium,
+            textAlign = TextAlign.Justify,
+            color = Color.White
+        )
+    )
+}
+
+@Composable
+fun PagerIdentificator(
+    pagerState: PagerState
+) {
+    Row(
+        Modifier
+            .wrapContentHeight()
+            .fillMaxWidth(0.7f)
+            .padding(bottom = 20.dp)
+    ) {
+        repeat(pagerState.pageCount) { iteration ->
+            val isCurrentPage = pagerState.currentPage == iteration
+            val color = if (isCurrentPage) Color(255, 255, 255, 255) else Color(
+                255,
+                255,
+                255,
+                100
+            )
+            val shape = if (isCurrentPage) RoundedCornerShape(8.dp) else CircleShape
+            Box(
+                modifier = Modifier
+                    .padding(2.dp)
+                    .clip(shape)
+                    .background(color)
+                    .size(if (isCurrentPage) 32.dp else 16.dp, 16.dp)
+            )
+        }
+    }
+}
