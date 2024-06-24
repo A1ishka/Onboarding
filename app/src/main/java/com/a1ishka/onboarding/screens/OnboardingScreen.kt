@@ -135,7 +135,6 @@ fun PagerScreen(
     }
 }
 
-
 @Composable
 fun ButtonNext(
     onBoardingPage: OnBoardingPage,
@@ -154,7 +153,7 @@ fun ButtonNext(
             coroutineScope.launch {
                 val nextPage = pagerState.currentPage + 1
                 if (nextPage < pagerState.pageCount) {
-                    pagerState.scrollToPage(nextPage)
+                    pagerState.animateScrollToPage(nextPage)
                 } else {
                     onboardingViewModel.saveOnBoardingState(completed = true)
                     navController.popBackStack()
